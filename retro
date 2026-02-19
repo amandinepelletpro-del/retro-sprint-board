@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rétro Sprint — Et si on recommençait ?</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a22;
+    --border: #2e2e3a;
+    --text: #f0eff5;
+    --muted: #6b6b82;
+    --accent1: #f7c948; /* jaune chaud */
+    --accent2: #5b8cff; /* bleu électrique */
+    --accent3: #ff6b6b; /* rouge corail */
+    --accent4: #52d9a0; /* vert menthe */
+    --sticky1: #fff9db;
+    --sticky2: #dbeafe;
+    --sticky3: #ffe4e4;
+    --sticky4: #d1fae5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 36px 48px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .header-left h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .header-left h1 span { color: var(--accent1); }
+
+  .header-left .subtitle {
+    margin-top: 10px;
+    font-size: 1rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .sprint-meta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .meta-field label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+  }
+  .meta-field input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    width: 160px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .meta-field input:focus { border-color: var(--accent1); }
+
+  /* ── TIMER ── */
+  .timer-bar {
+    margin: 28px 48px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .timer-label {
+    font-family: 'Syne', sans-serif;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+  }
+  .timer-display {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent1);
+    min-width: 80px;
+  }
+  .timer-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 5px 14px;
+    cursor: pointer;
+    font-size: .85rem;
+    transition: all .2s;
+  }
+  .timer-btn:hover { border-color: var(--accent1); color: var(--accent1); }
+
+  /* ── SECTIONS GRID ── */
+  .board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    padding: 28px 48px;
+  }
+
+  .section {
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s;
+  }
+  .section:hover { transform: translateY(-2px); }
+
+  .section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 16px 16px 0 0;
+  }
+  .section.col1::before { background: var(--accent1); }
+  .section.col2::before { background: var(--accent2); }
+  .section.col3::before { background: var(--accent3); }
+  .section.col4::before { background: var(--accent4); }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-icon { font-size: 1.4rem; }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -.01em;
+  }
+  .section-hint {
+    font-size: .78rem;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* ── POST-ITS ── */
+  .stickies {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 80px;
+  }
+
+  .sticky {
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: .88rem;
+    color: #1a1a2e;
+    line-height: 1.5;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    animation: popIn .2s ease;
+    box-shadow: 2px 3px 8px rgba(0,0,0,.25);
+  }
+  @keyframes popIn {
+    from { transform: scale(.85); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  .col1 .sticky { background: var(--sticky1); }
+  .col2 .sticky { background: var(--sticky2); }
+  .col3 .sticky { background: var(--sticky3); }
+  .col4 .sticky { background: var(--sticky4); }
+
+  .sticky-text {
+    flex: 1;
+    outline: none;
+    background: transparent;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    color: #1a1a2e;
+    resize: none;
+    min-height: 40px;
+    cursor: text;
+  }
+  .sticky-text::placeholder { color: #9090a0; }
+
+  .sticky-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(0,0,0,.3);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+    flex-shrink: 0;
+    transition: color .15s;
+  }
+  .sticky-del:hover { color: rgba(0,0,0,.7); }
+
+  .add-sticky {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--muted);
+    font-size: .82rem;
+    cursor: pointer;
+    transition: all .2s;
+    width: 100%;
+  }
+  .add-sticky:hover { border-color: var(--accent1); color: var(--accent1); }
+
+  /* ── ACTIONS TABLE ── */
+  .actions-section {
+    margin: 0 48px 48px;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .actions-header {
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(247,201,72,.05);
+  }
+  .actions-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    flex: 1;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+
+  tbody td {
+    padding: 8px 16px;
+  }
+  tbody td input, tbody td select {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    width: 100%;
+    outline: none;
+  }
+  tbody td select { cursor: pointer; }
+  tbody td select option { background: var(--surface); }
+
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  .s-todo { background: var(--muted); }
+  .s-doing { background: var(--accent2); }
+  .s-done { background: var(--accent4); }
+
+  .add-action-row {
+    display: flex;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .btn-add-action {
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: var(--muted);
+    font-size: .82rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .2s;
+  }
+  .btn-add-action:hover { border-color: var(--accent4); color: var(--accent4); }
+
+  .del-row {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: .9rem;
+    transition: color .15s;
+    padding: 0 4px;
+  }
+  .del-row:hover { color: var(--accent3); }
+
+  /* ── EXPORT BTN ── */
+  .export-bar {
+    margin: 0 48px 48px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .btn-export {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: .85rem;
+    letter-spacing: .05em;
+    background: var(--accent1);
+    color: #0f0f13;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn-export:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(247,201,72,.3); }
+
+  .btn-clear {
+    font-family: 'Syne', sans-serif;
+    font-size: .85rem;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+  .btn-clear:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--accent4);
+    color: #0f0f13;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: .85rem;
+    padding: 12px 22px;
+    border-radius: 10px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .3s ease;
+    z-index: 999;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  @media (max-width: 640px) {
+    header, .board, .actions-section, .export-bar { padding-left: 20px; padding-right: 20px; }
+    .board { grid-template-columns: 1fr; }
+    .actions-section { margin-left: 20px; margin-right: 20px; }
+    .export-bar { margin-left: 20px; margin-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Et si on <span>recommençait</span><br>ce sprint ?</h1>
+    <p class="subtitle">Rétrospective · Format "On ferait quoi différemment ?"</p>
+  </div>
+  <div class="sprint-meta">
+    <div class="meta-field">
+      <label>Sprint</label>
+      <input type="text" id="sprint-name" placeholder="Sprint 42" />
+    </div>
+    <div class="meta-field">
+      <label>Équipe</label>
+      <input type="text" id="team-name" placeholder="Team Phoenix" />
+    </div>
+    <div class="meta-field">
+      <label>Date</label>
+      <input type="text" id="sprint-date" placeholder="Fév 2026" />
+    </div>
+  </div>
+</header>
+
+<div class="timer-bar">
+  <span class="timer-label">⏱ Timer</span>
+  <span class="timer-display" id="timer-disp">05:00</span>
+  <button class="timer-btn" id="timer-toggle" onclick="toggleTimer()">▶ Start</button>
+  <button class="timer-btn" onclick="resetTimer()">↺ Reset</button>
+  <select id="timer-preset" onchange="setPreset()" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 10px;font-size:.82rem;cursor:pointer;">
+    <option value="300">5 min</option>
+    <option value="420">7 min</option>
+    <option value="600">10 min</option>
+    <option value="180">3 min</option>
+  </select>
+</div>
+
+<div class="board">
+
+  <!-- COLONNE 1 -->
+  <div class="section col1">
+    <div class="section-header">
+      <span class="section-icon">🔁</span>
+      <span class="section-title">On referait pareil</span>
+    </div>
+    <p class="section-hint">Ce qui a vraiment bien fonctionné et qu'on voudrait reproduire systématiquement.</p>
+    <div class="stickies" id="stickies-1"></div>
+    <button class="add-sticky" onclick="addSticky(1)">＋ Ajouter</button>
+  </div>
+
+  <!-- COLONNE 2 -->
+  <div class="section col2">
+    <div class="section-header">
+      <span class="section-icon">🔧</span>
+      <span class="section-title">On changerait ça</span>
+    </div>
+    <p class="section-hint">Ce qui nous a freinés, qu'on ferait autrement dès le prochain sprint.</p>
+    <div class="stickies" id="stickies-2"></div>
+    <button class="add-sticky" onclick="addSticky(2)">＋ Ajouter</button>
+  </div>
+
+  <!-- COLONNE 3 -->
+  <div class="section col3">
+    <div class="section-header">
+      <span class="section-icon">🚫</span>
+      <span class="section-title">On éviterait complètement</span>
+    </div>
+    <p class="section-hint">Les erreurs, les impasses ou les rituels inutiles qu'on supprimerait d'emblée.</p>
+    <div class="stickies" id="stickies-3"></div>
+    <button class="add-sticky" onclick="addSticky(3)">＋ Ajouter</button>
+  </div>
+
+  <!-- COLONNE 4 -->
+  <div class="section col4">
+    <div class="section-header">
+      <span class="section-icon">💡</span>
+      <span class="section-title">On essaierait dès demain</span>
+    </div>
+    <p class="section-hint">Les idées nouvelles qui ont émergé et qu'on n'a pas encore testées.</p>
+    <div class="stickies" id="stickies-4"></div>
+    <button class="add-sticky" onclick="addSticky(4)">＋ Ajouter</button>
+  </div>
+
+</div>
+
+<!-- ACTIONS -->
+<div class="actions-section">
+  <div class="actions-header">
+    <span>📋</span>
+    <h2>Actions du sprint suivant</h2>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:42%">Action</th>
+        <th style="width:22%">Responsable</th>
+        <th style="width:20%">Statut</th>
+        <th style="width:12%">Lié à</th>
+        <th style="width:4%"></th>
+      </tr>
+    </thead>
+    <tbody id="actions-tbody">
+    </tbody>
+  </table>
+  <div class="add-action-row">
+    <button class="btn-add-action" onclick="addAction()">＋ Ajouter une action</button>
+  </div>
+</div>
+
+<div class="export-bar">
+  <button class="btn-clear" onclick="clearAll()">🗑 Tout effacer</button>
+  <button class="btn-export" onclick="exportBoard()">⬇ Exporter en HTML</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── TIMER ───
+let timerSec = 300, timerRunning = false, timerInterval = null;
+function pad(n){ return String(n).padStart(2,'0'); }
+function renderTimer(){
+  const m = Math.floor(timerSec/60), s = timerSec%60;
+  document.getElementById('timer-disp').textContent = pad(m)+':'+pad(s);
+}
+function toggleTimer(){
+  timerRunning = !timerRunning;
+  document.getElementById('timer-toggle').textContent = timerRunning ? '⏸ Pause' : '▶ Start';
+  if(timerRunning){
+    timerInterval = setInterval(()=>{
+      if(timerSec <= 0){ clearInterval(timerInterval); timerRunning=false;
+        document.getElementById('timer-toggle').textContent='▶ Start';
+        showToast('⏰ Temps écoulé !'); return; }
+      timerSec--; renderTimer();
+    }, 1000);
+  } else { clearInterval(timerInterval); }
+}
+function resetTimer(){
+  clearInterval(timerInterval); timerRunning=false;
+  timerSec = parseInt(document.getElementById('timer-preset').value);
+  renderTimer();
+  document.getElementById('timer-toggle').textContent='▶ Start';
+}
+function setPreset(){
+  clearInterval(timerInterval); timerRunning=false;
+  timerSec = parseInt(document.getElementById('timer-preset').value);
+  renderTimer();
+  document.getElementById('timer-toggle').textContent='▶ Start';
+}
+
+// ─── STICKIES ───
+const colColors = ['','#fff9db','#dbeafe','#ffe4e4','#d1fae5'];
+function addSticky(col, text=''){
+  const container = document.getElementById('stickies-'+col);
+  const div = document.createElement('div');
+  div.className = 'sticky';
+  const ta = document.createElement('textarea');
+  ta.className = 'sticky-text';
+  ta.placeholder = 'Écrivez votre idée…';
+  ta.value = text;
+  ta.rows = 2;
+  ta.addEventListener('input', ()=>{ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; });
+  const del = document.createElement('button');
+  del.className = 'sticky-del';
+  del.textContent = '✕';
+  del.onclick = ()=>{ div.remove(); };
+  div.appendChild(ta); div.appendChild(del);
+  container.appendChild(div);
+  ta.focus();
+}
+
+// ─── ACTIONS ───
+function addAction(action='', owner='', status='todo', cat=''){
+  const tbody = document.getElementById('actions-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" placeholder="Décrire l'action…" value="${action}" /></td>
+    <td><input type="text" placeholder="Qui ?" value="${owner}" /></td>
+    <td>
+      <select onchange="updateStatusDot(this)">
+        <option value="todo" ${status==='todo'?'selected':''}>⚪ À faire</option>
+        <option value="doing" ${status==='doing'?'selected':''}>🔵 En cours</option>
+        <option value="done" ${status==='done'?'selected':''}>🟢 Fait</option>
+      </select>
+    </td>
+    <td>
+      <select>
+        <option value="">—</option>
+        <option value="1" ${cat==='1'?'selected':''}>🔁 Pareil</option>
+        <option value="2" ${cat==='2'?'selected':''}>🔧 Changer</option>
+        <option value="3" ${cat==='3'?'selected':''}>🚫 Éviter</option>
+        <option value="4" ${cat==='4'?'selected':''}>💡 Essayer</option>
+      </select>
+    </td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+// ─── EXPORT ───
+function exportBoard(){
+  const snap = document.documentElement.outerHTML;
+  const blob = new Blob([snap], {type:'text/html'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'retro-sprint.html'; a.click();
+  showToast('✅ Board exporté !');
+}
+
+function clearAll(){
+  if(!confirm('Effacer tout le contenu ?')) return;
+  [1,2,3,4].forEach(i => document.getElementById('stickies-'+i).innerHTML='');
+  document.getElementById('actions-tbody').innerHTML='';
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent=msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// Init
+renderTimer();
+addAction('Définir la DoD avant le début du sprint','',  'todo','2');
+addAction('', '', 'todo', '');
+</script>
+</body>
+</html>
